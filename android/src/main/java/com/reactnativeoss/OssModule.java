@@ -123,7 +123,27 @@ public class OssModule extends ReactContextBaseJavaModule {
       sourceFile = sourceFile.replace("file://", "");
     }
     PutObjectRequest put;
-    put = new PutObjectRequest(bucketName, ossFile, sourceFile);
+    if(isFile)
+    {
+      put = new PutObjectRequest(bucketName, ossFile, sourceFile );
+    }
+    else
+    {
+      //Bitmap bitmap = BitmapFactory.decodeFile(sourceFile);
+      Bitmap bitmap = BitmapFactory.decodeByteArray(Base64.decode(sourceFile, Base64.DEFAULT), 0, Base64.decode(sourceFile, Base64.DEFAULT).length);
+//            int height = Math.round((float)(bitmap.getHeight()*907/bitmap.getWidth()));
+//            Bitmap mBitmap = Bitmap.createScaledBitmap(bitmap, 907,height, true);
+      Log.e("YUNWidth",bitmap.getWidth()+"") ;
+      Log.e("YUNHeight",bitmap.getHeight()+"") ;
+      bitmap.getHeight();
+      byte[] byteArr = Base64.decode(bitmapToBase64(bitmap), Base64.DEFAULT);
+
+      Log.e("byteArr",byteArr.length+"");
+      put = new PutObjectRequest(bucketName, ossFile, byteArr );
+
+//            mBitmap.recycle();
+      bitmap.recycle();
+    }
 
     ObjectMetadata metadata = new ObjectMetadata();
     metadata.setContentType("application/octet-stream");
@@ -289,4 +309,34 @@ public class OssModule extends ReactContextBaseJavaModule {
       }
     });
   }
+
+  public static String bitmapToBase64(Bitmap bitmap) {
+
+    String result = null;
+    ByteArrayOutputStream baos = null;
+    try {
+        if (bitmap != null) {
+            baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+
+            baos.flush();
+            baos.close();
+
+            byte[] bitmapBytes = baos.toByteArray();
+            result = Base64.encodeToString(bitmapBytes, Base64.DEFAULT);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        try {
+            if (baos != null) {
+                baos.flush();
+                baos.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    return result;
+}
 }
